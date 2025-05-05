@@ -1,0 +1,11 @@
+src/
+├── index.js          # Punto de entrada (inicializa la app)
+├── logic/            # Lógica de la aplicación
+│   ├── Todo.js       # Clase/fábrica para crear todos
+│   ├── Project.js    # Clase/fábrica para proyectos
+│   ├── App.js        # Maneja la lógica principal (lista de proyectos, etc.)
+├── storage/          
+│   ├── storage.js    # Funciones para guardar/cargar de localStorage
+├── ui/               
+│   ├── render.js     # Funciones para renderizar la interfaz
+│   ├── events.js     # Manejadores de eventos (clics, formularios, etc.)
