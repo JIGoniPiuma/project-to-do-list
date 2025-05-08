@@ -252,6 +252,7 @@ body {
 }
 
 .bucket-title {
+  padding-left: 1rem;
   font-weight: bold;
   font-size: 2rem;
   margin-bottom: 10px;
@@ -276,9 +277,6 @@ body {
   background: var(--low-priority);
 }
 
-/* ==================== */
-/* TASK CARDS (ESTILO NOTION) */
-/* ==================== */
 .task-container {
   background: var(--card-bg);
   width: 20vw;
