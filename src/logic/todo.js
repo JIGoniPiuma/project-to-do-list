@@ -20,7 +20,8 @@ export class ToDo {
     category, //check
     project, //check
     checklist, //check
-    notes //check
+    notes, //check
+    id
   ) {
     this.title = title;
     this.description = description;
@@ -32,6 +33,7 @@ export class ToDo {
     this.project = project;
     this.checklist = checklist;
     this.notes = notes;
+    this.id = id;
   }
 
   setTitle(title) {
@@ -66,4 +68,6 @@ export class ToDo {
       unit: "day",
     });
   }
+
+  
 }

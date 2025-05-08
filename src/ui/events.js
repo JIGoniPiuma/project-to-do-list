@@ -1,9 +1,9 @@
 //FALTA LA LOGICA PARA ELIMINAR FORMULARIOS
 
 import { ToDo } from "../logic/todo";
-import { renderNewTask } from "./render";
+import { getFromLocalStorage, saveInLocalStorage } from "../storage/storage";
 
-export const toDoList = [];
+// export const toDoList = getFromLocalStorage("toDoList") || [];
 
 export function handleEvents() {
   document.addEventListener("click", (e) => {
@@ -41,7 +41,7 @@ function handleSaveTask() {
   const dueDate = new Date(dueDateInput.value);
 
   if (!taskForm.checkValidity()) {
-    alert("Please fill in title and dates");
+    alert("Please fill all the required fields");
     title.focus();
     startDateInput.focus();
     dueDateInput.focus();
@@ -55,14 +55,7 @@ function handleSaveTask() {
     const newTask = createTask();
     saveInTodoList(newTask);
     saveProperties(newTask);
-    // console.log(
-    //   newTask.project,
-    //   newTask.priority,
-    //   newTask.checklist,
-    //   newTask.category,
-    //   newTask.notes
-    // );
-    console.log(propertiesObject);
+
     clearTaskForm();
   }
 }
@@ -87,6 +80,7 @@ function createTask() {
   ).map((span) => span.textContent);
 
   const notes = document.querySelector(".notes-area").value;
+  const id = `${Date.now()}-${title.toLowerCase().replace(/\s+/g, "-")}`;
 
   try {
     const newTask = new ToDo(
@@ -100,10 +94,11 @@ function createTask() {
       project,
       checkListItems,
       notes,
-      ""
+      id
     );
 
     console.log("Nueva tarea creada:", newTask);
+
     return newTask;
   } catch (error) {
     console.error("Error al crear la tarea:", error.message);
@@ -119,8 +114,10 @@ function clearTaskForm() {
 }
 
 function saveInTodoList(task) {
+  const toDoList = getFromLocalStorage("toDoListArray");
   toDoList.push(task);
   console.log(toDoList);
+  saveInLocalStorage(toDoList);
   return toDoList;
 }
 
@@ -143,14 +140,8 @@ function handleAddChecklistTask() {
   }
 }
 
-export const propertiesObject = {
-  projects: [],
-  priorities: [],
-  categories: [],
-};
-
 export function saveProperties(task) {
-  //paso lo que exista en "propertiesObject.propiedad" a minuscula. EN el primer caso vana estar vacios.
+  const propertiesObject = getFromLocalStorage("propertiesObject") 
   const existingProjectsLower = propertiesObject.projects.map((p) =>
     p.toLowerCase()
   );
@@ -174,20 +165,63 @@ export function saveProperties(task) {
     propertiesObject.categories.push(task.category);
   }
 
+  saveInLocalStorage(propertiesObject);
+
   return propertiesObject;
 }
 
-function handleCompleteTask(completeButton) {
-  const taskContainer = completeButton.closest(".task-container"); // esto recorre el nodo en el DOM hacia arriba hasta en contrar el parent más cercano con ese nombre
+export function handleCompleteTask(completeButton) {
+  const toDoList = getFromLocalStorage("toDoListArray");
 
+  const taskContainer = completeButton.closest(".task-container"); // esto recorre el nodo en el DOM hacia arriba hasta en contrar el parent más cercano con ese nombre
   const taskTitle = taskContainer.querySelector(".task-title").textContent; // selecciono su titulo para luego usarlo en el callback de findindex
 
-  const taskIndex = toDoList.findIndex((task) => task.title === taskTitle);// busco en toDOlist el index de la tarea que quiero eliminar y la elimino con SPLICEEE
+  const taskIndex = toDoList.findIndex((task) => task.title === taskTitle); // busco en toDOlist el index de la tarea que quiero eliminar y la elimino con SPLICEEE
   if (taskIndex !== -1) {
-    toDoList.splice(taskIndex, 1);
+    toDoList.splice(taskIndex, 1); // esto es una clase.
+    taskContainer.remove();
+    saveInLocalStorage(toDoList);
+
+    cleanupEmptyBuckets();
   }
+}
+export function cleanupEmptyBuckets() {
+  const propertiesObject = getFromLocalStorage("propertiesObject");
+  const buckets = document.querySelectorAll(".bucket");
 
-  taskContainer.remove();     
+  buckets.forEach((bucket) => {
+    if (bucket.querySelectorAll(".task-container").length === 0) {
+      const bucketTitle = bucket.querySelector(".bucket-title").textContent;
 
-  console.log("Tarea completada eliminada:", taskTitle);
+      const priorityIndex = propertiesObject.priorities.findIndex(
+        (priority) => priority === bucketTitle
+      );
+      if (priorityIndex !== -1) {
+        propertiesObject.priorities.splice(priorityIndex, 1);
+
+        // saveInLocalStorage(propertiesObject);
+      }
+
+      const categoryIndex = propertiesObject.categories.findIndex(
+        (category) => category === bucketTitle
+      );
+      if (categoryIndex !== -1) {
+        propertiesObject.categories.splice(categoryIndex, 1);
+
+        // saveInLocalStorage(propertiesObject);
+      }
+
+      const projectIndex = propertiesObject.projects.findIndex(
+        (project) => project === bucketTitle
+      );
+      if (projectIndex !== -1) {
+        propertiesObject.projects.splice(projectIndex, 1);
+
+        // saveInLocalStorage(propertiesObject);
+      }
+
+      saveInLocalStorage(propertiesObject);
+      bucket.remove();
+    }
+  });
 }

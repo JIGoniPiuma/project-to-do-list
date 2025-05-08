@@ -1,6 +1,5 @@
-import { toDoList } from "../ui/events";
-import { getFullYear, getDate, getMonth } from "date-fns";
-import { propertiesObject } from "../ui/events";
+import { getFromLocalStorage } from "../storage/storage";
+import { cleanupEmptyBuckets } from "./events";
 
 //Crear la renderización del task
 export function renderNewTask() {
@@ -240,17 +239,21 @@ export function renderNewTask() {
 }
 
 export function renderSections() {
+  // esta deberia estar en file events.js
   document.addEventListener("click", (e) => {
     if (e.target.classList.contains("section-title")) {
       e.preventDefault();
 
       const sectionType = e.target.dataset.section;
+
       render(sectionType);
     }
   });
 }
 
 function render(section) {
+  const propertiesObject = getFromLocalStorage("propertiesObject");
+  const toDoList = getFromLocalStorage("toDoListArray");
   const prioritiesArray = propertiesObject.priorities;
   const projectsArray = propertiesObject.projects;
   const categoriesArray = propertiesObject.categories;
@@ -320,6 +323,7 @@ function render(section) {
     });
   }
 
+  cleanupEmptyBuckets();
   toDoList.forEach((todo) => {
     const inputDate = new Date(todo.dueDate); // esto me pone la fecha del input en formato OBJETO DATE
     const today = new Date();
@@ -486,6 +490,19 @@ function createTaskCard(todo) {
 
   checklistContainer.append(checklistTitle, checklist);
 
+  const notesContainer = document.createElement("div");
+  notesContainer.classList.add(".notes-container");
+
+  const notesSubtitle = document.createElement("h2");
+  notesSubtitle.classList.add("task-subtitle");
+  notesSubtitle.textContent = "Notes";
+
+  const notesArea = document.createElement("div");
+  notesArea.classList.add("notes-area");
+  notesArea.textContent = todo.notes;
+
+  notesContainer.append(notesSubtitle, notesArea);
+
   const toggleCompleteBtn = document.createElement("button");
   toggleCompleteBtn.type = "submit";
   toggleCompleteBtn.classList.add("complete-button");
@@ -497,11 +514,11 @@ function createTaskCard(todo) {
     dateContainer,
     taskDescriptionContainer,
     checklistContainer,
+    notesContainer,
     toggleCompleteBtn
   );
 
   return taskContainer;
-  // dashboard.appendChild(taskContainer);
 }
 
 // para que los section titles permanezcan en BOLD cuando se clickean
