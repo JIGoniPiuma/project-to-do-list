@@ -54,7 +54,7 @@ export function renderNewTask() {
     startDate.min = "2018-01-01";
     startDate.max = "2100-01-01";
     const startDateLabel = document.createElement("label");
-    startDateLabel.htmlFor = "start-date-input"; // Debe coincidir con el id del input
+    startDateLabel.htmlFor = "start-date-input";
     startDateLabel.textContent = "Start date:";
 
     startDateContainer.appendChild(startDateLabel);
@@ -72,7 +72,7 @@ export function renderNewTask() {
     dueDate.name = "due-date";
     dueDate.required = true;
 
-    dueDate.min = new Date().toISOString().split("T")[0];
+    // dueDate.min = new Date().toISOString().split("T")[0];
     dueDate.max = "2100-01-01";
     const dueDateLabel = document.createElement("label");
     dueDateLabel.htmlFor = "due-date-input";
@@ -324,32 +324,36 @@ function render(section) {
   }
 
   cleanupEmptyBuckets();
+
   toDoList.forEach((todo) => {
-    const inputDate = new Date(todo.dueDate); // esto me pone la fecha del input en formato OBJETO DATE
-    const today = new Date();
+    const dueDateStr = todo.dueDate; // "YYYY-MM-DD"
+
+    const now = new Date();
+    const todayStr = formatDateLocal(now); // también "YYYY-MM-DD"
 
     const taskContainer = createTaskCard(todo);
 
-    //crear funcion que haga un attach Bucket para cada seccion.
-
     if (section === "today") {
-      if (
-        inputDate.getFullYear() === today.getFullYear() &&
-        inputDate.getMonth() === today.getMonth() &&
-        inputDate.getDate() === today.getDate()
-      ) {
+      if (dueDateStr === todayStr) {
         dashboard.appendChild(taskContainer);
       }
     } else if (section === "upcoming") {
-      if (
-        inputDate.getFullYear() != today.getFullYear() ||
-        inputDate.getMonth() != today.getMonth() ||
-        inputDate.getDate() != today.getDate()
-      ) {
+      if (dueDateStr > todayStr) {
+        dashboard.appendChild(taskContainer);
+      }
+    } else if (section === "overdue") {
+      if (dueDateStr < todayStr) {
         dashboard.appendChild(taskContainer);
       }
     }
   });
+
+  function formatDateLocal(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
 }
 // Tengo un Array con las priorities (no repetidas)
 // en cada for each voy a obtener una priority
@@ -448,6 +452,8 @@ function createTaskCard(todo) {
   dueDate.classList.add("date");
   dueDate.textContent = todo.dueDate;
   dateContainer.append(dateCreated, startDate, dateDeadline, dueDate);
+
+
 
   const taskDescriptionContainer = document.createElement("div");
   taskDescriptionContainer.classList.add("description-container");
